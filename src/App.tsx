@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import "./App.css";
 
-// <-- Put it here, right after imports
-const API_URL = "https://final-web-backend.onrender.com";
+// Backend URL
+const API_URL = "https://final-web-backend.onrender.com/todos";
 
 interface Todo {
   id: number;
+  title: string;
   task: string;
+  status: string;
 }
 
 function App() {
@@ -15,30 +17,45 @@ function App() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [editId, setEditId] = useState<number | null>(null);
 
+  // Load todos
   const loadTodos = async () => {
-    const res = await axios.get(API_URL); // use API_URL here
-    setTodos(res.data);
+    try {
+      const res = await axios.get(API_URL);
+      setTodos(res.data);
+    } catch (err) {
+      console.error("Error loading todos:", err);
+    }
   };
 
+  // Add or update todo
   const addTodo = async () => {
     if (!task.trim()) return;
 
-    if (editId) {
-      await axios.put(`${API_URL}/${editId}`, { task }); // use API_URL
-      setEditId(null);
-    } else {
-      await axios.post(API_URL, { task }); // use API_URL
+    try {
+      if (editId) {
+        await axios.put(`${API_URL}/${editId}`, { title: task, task, status: "pending" });
+        setEditId(null);
+      } else {
+        await axios.post(API_URL, { title: task, task });
+      }
+      setTask("");
+      loadTodos();
+    } catch (err) {
+      console.error("Error adding/updating todo:", err);
     }
-
-    setTask("");
-    loadTodos();
   };
 
+  // Delete todo
   const deleteTodo = async (id: number) => {
-    await axios.delete(`${API_URL}/${id}`); // use API_URL
-    loadTodos();
+    try {
+      await axios.delete(`${API_URL}/${id}`);
+      loadTodos();
+    } catch (err) {
+      console.error("Error deleting todo:", err);
+    }
   };
 
+  // Start editing
   const startEdit = (todo: Todo) => {
     setTask(todo.task);
     setEditId(todo.id);
@@ -59,14 +76,17 @@ function App() {
           value={task}
           onChange={(e) => setTask(e.target.value)}
         />
-        <button onClick={addTodo}>{editId ? "Update" : "Add"}</button>
+        <button onClick={addTodo} disabled={!task.trim()}>
+          {editId ? "Update" : "Add"}
+        </button>
       </div>
+
+      {todos.length === 0 && <p>No tasks yet!</p>}
 
       <ul>
         {todos.map((todo) => (
           <li key={todo.id}>
             <span>{todo.task}</span>
-
             <div className="actions">
               <button className="edit" onClick={() => startEdit(todo)}>Edit</button>
               <button className="delete" onClick={() => deleteTodo(todo.id)}>Delete</button>
