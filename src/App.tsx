@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import "./App.css";
 
+// <-- Put it here, right after imports
+const API_URL = "https://final-web-backend.onrender.com";
+
 interface Todo {
   id: number;
   task: string;
@@ -13,7 +16,7 @@ function App() {
   const [editId, setEditId] = useState<number | null>(null);
 
   const loadTodos = async () => {
-    const res = await axios.get("http://localhost:5000/todos");
+    const res = await axios.get(API_URL); // use API_URL here
     setTodos(res.data);
   };
 
@@ -21,10 +24,10 @@ function App() {
     if (!task.trim()) return;
 
     if (editId) {
-      await axios.put(`http://localhost:5000/todos/${editId}`, { task });
+      await axios.put(`${API_URL}/${editId}`, { task }); // use API_URL
       setEditId(null);
     } else {
-      await axios.post("http://localhost:5000/todos", { task });
+      await axios.post(API_URL, { task }); // use API_URL
     }
 
     setTask("");
@@ -32,7 +35,7 @@ function App() {
   };
 
   const deleteTodo = async (id: number) => {
-    await axios.delete(`http://localhost:5000/todos/${id}`);
+    await axios.delete(`${API_URL}/${id}`); // use API_URL
     loadTodos();
   };
 
@@ -66,9 +69,7 @@ function App() {
 
             <div className="actions">
               <button className="edit" onClick={() => startEdit(todo)}>Edit</button>
-              <button className="delete" onClick={() => deleteTodo(todo.id)}>
-                Delete
-              </button>
+              <button className="delete" onClick={() => deleteTodo(todo.id)}>Delete</button>
             </div>
           </li>
         ))}
